@@ -20,7 +20,7 @@ import httpx
 
 # from app.services.downloader import download_raw_audio
 # from app.services.whisperer import transcribe_audio
-
+from app.tasks.note_tasks import generate_note_task
 router = APIRouter()
 
 
@@ -48,10 +48,7 @@ class VideoRequest(BaseModel):
 NOTE_OUTPUT_DIR = "note_results"
 
 
-def save_note_to_file(task_id: str, note):
-    os.makedirs(NOTE_OUTPUT_DIR, exist_ok=True)
-    with open(os.path.join(NOTE_OUTPUT_DIR, f"{task_id}.json"), "w", encoding="utf-8") as f:
-        json.dump(asdict(note), f, ensure_ascii=False, indent=2)
+
 
 
 def run_note_task(task_id: str, video_url: str, platform: str, quality: DownloadQuality, link: bool = False,screenshot: bool = False):
@@ -96,7 +93,14 @@ def generate_note(data: VideoRequest, background_tasks: BackgroundTasks):
 
         task_id = str(uuid.uuid4())
 
-        background_tasks.add_task(run_note_task, task_id, data.video_url, data.platform, data.quality,data.link ,data.screenshot)
+        generate_note_task.delay(
+            task_id=task_id,
+            video_url=data.video_url,
+            platform=data.platform,
+            quality=data.quality.value,
+            link=data.link,
+            screenshot=data.screenshot
+        )
         return R.success({"task_id": task_id})
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

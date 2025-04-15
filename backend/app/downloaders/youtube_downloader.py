@@ -6,9 +6,10 @@ import yt_dlp
 
 from app.downloaders.base import Downloader, DownloadQuality
 from app.models.notes_model import AudioDownloadResult
+from app.utils.logger import get_logger
 from app.utils.path_helper import get_data_dir
 
-
+logger=get_logger(__name__)
 class YoutubeDownloader(Downloader, ABC):
     def __init__(self):
 
@@ -30,7 +31,7 @@ class YoutubeDownloader(Downloader, ABC):
         output_path = os.path.join(output_dir, "%(id)s.%(ext)s")
 
         ydl_opts = {
-            'format': 'best[height<=480][ext=mp4]/best[height<=480]/best',
+            'format': 'best[ext=mp4][height<=720]/best[height<=720]/best',
             'outtmpl': output_path,
             'noplaylist': True,
             'quiet': False,
@@ -56,33 +57,52 @@ class YoutubeDownloader(Downloader, ABC):
         )
 
     def download_video(
-        self,
-        video_url: str,
-        output_dir: Union[str, None] = None,
+            self,
+            video_url: str,
+            output_dir: Union[str, None] = None,
+            quality: DownloadQuality = "medium",
     ) -> str:
-        """
-        下载视频，返回视频文件路径
-        """
         if output_dir is None:
             output_dir = get_data_dir()
 
         os.makedirs(output_dir, exist_ok=True)
         output_path = os.path.join(output_dir, "%(id)s.%(ext)s")
 
-        ydl_opts = {
-            'format': 'worst[ext=mp4]/worst',
-            'outtmpl': output_path,
-            'noplaylist': True,
-            'quiet': False,
-            'merge_output_format': 'mp4',  # 确保合并成 mp4
+        format_map = {
+            "fast": "best[height<=480]",
+            "medium": "best[height<=720]",
+            "slow": "bestvideo+bestaudio/best"
         }
+        preferred_format = format_map.get(quality, "best[height<=720]")
 
-        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-            info = ydl.extract_info(video_url, download=True)
-            video_id = info.get("id")
-            video_path = os.path.join(output_dir, f"{video_id}.mp4")
+        # ⛑️ 多级格式容错 fallback
+        fallback_formats = [
+            preferred_format,
+            "best[ext=mp4]",
+            "bestvideo+bestaudio",
+            "best"
+        ]
 
-        if not os.path.exists(video_path):
-            raise FileNotFoundError(f"视频文件未找到: {video_path}")
+        last_error = None
+        for fmt in fallback_formats:
+            ydl_opts = {
+                'format': fmt,
+                'outtmpl': output_path,
+                'noplaylist': True,
+                'quiet': False,
+                'merge_output_format': 'mp4',
+            }
 
-        return video_path
+            try:
+                with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+                    info = ydl.extract_info(video_url, download=True)
+                    video_id = info.get("id")
+                    video_path = os.path.join(output_dir, f"{video_id}.mp4")
+                    if os.path.exists(video_path):
+                        return video_path
+            except yt_dlp.utils.DownloadError as e:
+                logger.warning(f"⚠️ 尝试格式失败：{fmt}")
+                last_error = e
+                continue
+
+        raise last_error or Exception("未能成功下载视频")

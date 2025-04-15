@@ -1,10 +1,14 @@
+import json
+import os
 import re
 
 
 import re
 
 import re
+from dataclasses import asdict
 
+NOTE_OUTPUT_DIR = "note_results"
 def replace_content_markers(markdown: str, video_id: str, platform: str = 'bilibili') -> str:
     """
     替换 *Content-04:16*、Content-04:16 或 Content-[04:16] 为超链接，跳转到对应平台视频的时间位置
@@ -30,3 +34,8 @@ def replace_content_markers(markdown: str, video_id: str, platform: str = 'bilib
         return f"[原片 @ {mm}:{ss}]({url})"
 
     return re.sub(pattern, replacer, markdown)
+
+def save_note_to_file(task_id: str, note):
+    os.makedirs(NOTE_OUTPUT_DIR, exist_ok=True)
+    with open(os.path.join(NOTE_OUTPUT_DIR, f"{task_id}.json"), "w", encoding="utf-8") as f:
+        json.dump(asdict(note), f, ensure_ascii=False, indent=2)
