@@ -40,7 +40,7 @@ async def startup_event():
     register_handler()
     ensure_ffmpeg_or_raise()
     try:
-        get_transcriber()
+        get_transcriber(transcriber_type=os.getenv("TRANSCRIBER_TYPE","fast-whisper"))
     except Exception as e:
         logger.error(f"初始化转录器失败，但不影响应用启动: {e}")
         logger.warning("注意：转录功能可能无法正常使用，但其他功能不受影响")
