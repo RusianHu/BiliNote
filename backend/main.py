@@ -28,6 +28,12 @@ if not os.path.exists(out_dir):
 app = create_app()
 app.mount(static_path, StaticFiles(directory=static_dir), name="static")
 
+# 添加截图目录的静态文件挂载
+# 这样可以通过 /screenshots/ 路径访问保存在 out_dir 目录下的文件
+screenshots_url = "/screenshots"
+logger.info(f"挂载截图目录: {out_dir} -> {screenshots_url}")
+app.mount(screenshots_url, StaticFiles(directory=out_dir), name="screenshots")
+
 # 注册事件处理器
 @app.on_event("startup")
 async def startup_event():

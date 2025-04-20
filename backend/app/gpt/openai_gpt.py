@@ -16,8 +16,7 @@ class OpenaiGPT(GPT):
         self.model=getenv('OPENAI_MODEL')
         print(self.model)
         self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
-        self.screenshot = False
-        self.link=False
+        # 实例变量 screenshot 和 link 已移除
 
     def _format_time(self, seconds: float) -> str:
         return str(timedelta(seconds=int(seconds)))[2:]  # e.g., 03:15
@@ -34,27 +33,36 @@ class OpenaiGPT(GPT):
             for seg in segments
         ]
 
-    def create_messages(self, segments: List[TranscriptSegment], title: str,tags:str):
+    def create_messages(self, segments: List[TranscriptSegment], title: str, tags: str, screenshot: bool, link: bool):
         content = BASE_PROMPT.format(
             video_title=title,
             segment_text=self._build_segment_text(segments),
             tags=tags
         )
-        if self.screenshot:
-            print(":需要截图")
-            content += SCREENSHOT
-        if self.link:
+        # 根据传入的参数动态添加指令
+        if link:
             print(":需要链接")
             content += LINK
+        if screenshot:
+            print(":需要截图")
+            content += SCREENSHOT
+
+        # 确保 AI_SUM 指令在最后添加
+        content += AI_SUM
 
         print(content)
-        return [{"role": "user", "content": content + AI_SUM}]
+        return [{"role": "user", "content": content}]
 
     def summarize(self, source: GPTSource) -> str:
-        self.screenshot = source.screenshot
-        self.link = source.link
+        # 直接将选项传递给 create_messages
         source.segment = self.ensure_segments_type(source.segment)
-        messages = self.create_messages(source.segment, source.title,source.tags)
+        messages = self.create_messages(
+            segments=source.segment,
+            title=source.title,
+            tags=source.tags,
+            screenshot=source.screenshot, # 传递 screenshot 选项
+            link=source.link # 传递 link 选项
+        )
         response = self.client.chat.completions.create(
             model=self.model,
             messages=messages,

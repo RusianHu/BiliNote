@@ -25,6 +25,8 @@ import re
 
 from app.utils.note_helper import replace_content_markers
 from app.utils.video_helper import generate_screenshot
+# 导入新的信号
+from events.signals import note_generation_finished
 
 # from app.services.whisperer import transcribe_audio
 # from app.services.gpt import summarize_text
@@ -117,8 +119,12 @@ class NoteGenerator:
         try:
             for idx, (marker, ts) in enumerate(matches):
                 image_path = generate_screenshot(video_path, output_dir, ts, idx)
-                image_relative_path = os.path.join(image_base_url, os.path.basename(image_path)).replace("\\", "/")
-                image_url = f"{BACKEND_BASE_URL.rstrip('/')}/{image_relative_path.lstrip('/')}"
+                # 直接使用 /screenshots 路径，与 main.py 中的静态文件挂载点一致
+                # 获取文件名
+                image_filename = os.path.basename(image_path)
+                # 构建URL路径
+                image_url = f"{BACKEND_BASE_URL.rstrip('/')}/screenshots/{image_filename}"
+                logger.info(f"生成截图URL: {image_url}")
                 replacement = f"![]({image_url})"
                 new_markdown = new_markdown.replace(marker, replacement, 1)
 
@@ -207,11 +213,15 @@ class NoteGenerator:
         if self.video_path:
             markdown = self.insert_screenshots_into_markdown(markdown, self.video_path, image_base_url, output_dir)
         self.save_meta(video_id=audio.video_id, platform=platform, task_id=task_id)
+        
+        # 在返回结果之前触发笔记生成完成信号
+        note_generation_finished.send({
+            "file_path": audio.file_path,
+        })
+        
         # 5. 返回结构体
         return NoteResult(
             markdown=markdown,
             transcript=transcript,
             audio_meta=audio
         )
-
-
