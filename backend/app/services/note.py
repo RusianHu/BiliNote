@@ -124,7 +124,11 @@ class NoteGenerator:
 
             return new_markdown
         except Exception as e:
-            logger.error(f"截图生成失败：{e}")
+            # 记录更详细的错误信息，特别是来自 generate_screenshot 的 RuntimeError
+            if isinstance(e, RuntimeError):
+                logger.error(f"截图生成失败: {e}") # RuntimeError 已经包含了详细信息
+            else:
+                logger.error(f"处理截图时发生意外错误: {e}", exc_info=True) # 对于其他异常，记录堆栈信息
             raise e
 
     @staticmethod
