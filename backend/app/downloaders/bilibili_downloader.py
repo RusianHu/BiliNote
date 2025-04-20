@@ -78,19 +78,16 @@ class BilibiliDownloader(Downloader, ABC):
             'quiet': False,
             'merge_output_format': 'mp4',  # 确保合并成 mp4
         }
-
         # 如果找到了 ffmpeg 路径，添加到 yt-dlp 选项中
         if ffmpeg_path:
+            ydl_opts['ffmpeg_location'] = ffmpeg_path
+            # 确保即使指定了 ffmpeg_location，后处理器仍然知道要转换格式
+            # yt-dlp 通常会自动处理，但明确指定可以更保险
             ydl_opts['postprocessors'] = [{
                 'key': 'FFmpegVideoConvertor',
-                'preferedformat': 'mp4',
-                'executable': ffmpeg_path # 指定 ffmpeg 路径
+                'preferedformat': 'mp4', # 指定转换格式为 mp4
             }]
-            ydl_opts['downloader_options'] = {
-                'ffmpeg_downloader': {
-                    'executable': ffmpeg_path # 再次指定 ffmpeg 路径，确保合并时使用
-                }
-            }
+            # downloader_options 通常不需要显式设置 ffmpeg 路径，ffmpeg_location 会处理
 
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
