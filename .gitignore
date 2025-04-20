@@ -316,3 +316,4 @@ cython_debug/
 /backend/note_results
 /backend/models
 /backend/.idea
+/bin

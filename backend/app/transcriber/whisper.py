@@ -36,17 +36,46 @@ class WhisperTranscriber(Transcriber):
 
         self.compute_type = compute_type or ("float16" if self.device == "cuda" else "int8")
 
+        # 直接使用项目根目录下的 backend/models/whisper-{model_size} 目录
+        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../"))
+        custom_model_path = os.path.join(project_root, "backend", "models", f"whisper-{model_size}")
+
+        # 打印路径信息便于调试
+        logger.info(f"Project root: {project_root}")
+        logger.info(f"Custom model path: {custom_model_path}")
+        logger.info(f"Custom model path exists: {Path(custom_model_path).exists()}")
+        if Path(custom_model_path).exists():
+            logger.info(f"Custom model path contents: {list(Path(custom_model_path).iterdir())}")
+
+        # 然后检查默认的模型目录
         model_dir = get_model_dir("whisper")
         model_path = os.path.join(model_dir, f"whisper-{model_size}")
-        if not Path(model_path).exists():
+
+        # 打印默认模型路径信息
+        logger.info(f"Default model dir: {model_dir}")
+        logger.info(f"Default model path: {model_path}")
+        logger.info(f"Default model path exists: {Path(model_path).exists()}")
+        if Path(model_path).exists():
+            logger.info(f"Default model path contents: {list(Path(model_path).iterdir())}")
+
+        # 如果项目根目录下存在模型，使用该目录
+        if Path(custom_model_path).exists() and os.path.isfile(os.path.join(custom_model_path, "model.bin")):
+            logger.info(f"使用项目根目录下的模型: {custom_model_path}")
+            model_path = custom_model_path
+        # 如果默认目录下不存在模型，尝试下载
+        elif not Path(model_path).exists() or not os.path.isfile(os.path.join(model_path, "model.bin")):
             logger.info(f"模型 whisper-{model_size} 不存在，开始下载...")
-            repo_id = f"guillaumekln/faster-whisper-{model_size}"
-            snapshot_download(
-                repo_id,
-                local_dir=model_path,
-                local_dir_use_symlinks=False,
-            )
-            logger.info("模型下载完成")
+            try:
+                repo_id = f"guillaumekln/faster-whisper-{model_size}"
+                snapshot_download(
+                    repo_id,
+                    local_dir=model_path,
+                    local_dir_use_symlinks=False,
+                )
+                logger.info("模型下载完成")
+            except Exception as e:
+                logger.error(f"模型下载失败: {e}")
+                raise
 
         self.model = WhisperModel(
             model_size,

@@ -28,13 +28,16 @@ if not os.path.exists(out_dir):
 app = create_app()
 app.mount(static_path, StaticFiles(directory=static_dir), name="static")
 
-async def startup_event():
-    register_handler()
+# 注册事件处理器
 @app.on_event("startup")
 async def startup_event():
     register_handler()
     ensure_ffmpeg_or_raise()
-    get_transcriber()
+    try:
+        get_transcriber()
+    except Exception as e:
+        logger.error(f"初始化转录器失败，但不影响应用启动: {e}")
+        logger.warning("注意：转录功能可能无法正常使用，但其他功能不受影响")
     init_video_task_table()
 
 if __name__ == "__main__":

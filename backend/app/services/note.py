@@ -1,5 +1,5 @@
 import os
-from typing import Union
+from typing import Union, List, Tuple
 
 from pydantic import HttpUrl
 
@@ -130,7 +130,7 @@ class NoteGenerator:
 
     import re
 
-    def extract_screenshot_timestamps(self, markdown: str) -> list[tuple[str, int]]:
+    def extract_screenshot_timestamps(self, markdown: str) -> List[Tuple[str, int]]:
         """
         从 Markdown 中提取 Screenshot 时间标记（如 *Screenshot-03:39 或 Screenshot-[03:39]），
         并返回匹配文本和对应时间戳（秒）

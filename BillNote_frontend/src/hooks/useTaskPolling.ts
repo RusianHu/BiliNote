@@ -30,7 +30,7 @@ export const useTaskPolling = (interval = 3000) => {
                                 audioMeta: audio_meta,
                             })
                         } else {
-                            updateTaskStatus(task.id, status)
+                            updateTaskContent(task.id, { status })
                         }
                     }
                 } catch (e) {
