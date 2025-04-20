@@ -7,7 +7,7 @@ import yt_dlp
 from app.downloaders.base import Downloader, DownloadQuality, QUALITY_MAP
 from app.models.notes_model import AudioDownloadResult
 from app.utils.path_helper import get_data_dir
-
+from ffmpeg_helper import check_ffmpeg_exists # 导入 check_ffmpeg_exists
 
 class BilibiliDownloader(Downloader, ABC):
     def __init__(self):
@@ -68,6 +68,9 @@ class BilibiliDownloader(Downloader, ABC):
         os.makedirs(output_dir, exist_ok=True)
         output_path = os.path.join(output_dir, "%(id)s.%(ext)s")
 
+        # 获取 ffmpeg 路径
+        ffmpeg_path = check_ffmpeg_exists()
+
         ydl_opts = {
             'format': 'bv*+ba/bestvideo+bestaudio/best',
             'outtmpl': output_path,
@@ -75,6 +78,20 @@ class BilibiliDownloader(Downloader, ABC):
             'quiet': False,
             'merge_output_format': 'mp4',  # 确保合并成 mp4
         }
+
+        # 如果找到了 ffmpeg 路径，添加到 yt-dlp 选项中
+        if ffmpeg_path:
+            ydl_opts['postprocessors'] = [{
+                'key': 'FFmpegVideoConvertor',
+                'preferedformat': 'mp4',
+                'executable': ffmpeg_path # 指定 ffmpeg 路径
+            }]
+            ydl_opts['downloader_options'] = {
+                'ffmpeg_downloader': {
+                    'executable': ffmpeg_path # 再次指定 ffmpeg 路径，确保合并时使用
+                }
+            }
+
 
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
             info = ydl.extract_info(video_url, download=True)

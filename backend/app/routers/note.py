@@ -18,6 +18,8 @@ from fastapi import APIRouter, Request, HTTPException
 from fastapi.responses import StreamingResponse
 import httpx
 
+from app.models.notes_model import ErrorResult # 导入 ErrorResult
+
 # from app.services.downloader import download_raw_audio
 # from app.services.whisperer import transcribe_audio
 
@@ -67,7 +69,9 @@ def run_note_task(task_id: str, video_url: str, platform: str, quality: Download
         print('Note 结果',note)
         save_note_to_file(task_id, note)
     except Exception as e:
-        save_note_to_file(task_id, {"error": str(e)})
+        # 使用 ErrorResult 数据类保存错误信息
+        error_result = ErrorResult(error=str(e))
+        save_note_to_file(task_id, error_result)
 
 
 @router.post('/delete_task')

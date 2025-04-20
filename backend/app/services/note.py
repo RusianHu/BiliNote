@@ -12,6 +12,7 @@ from app.gpt.base import GPT
 from app.gpt.deepseek_gpt import DeepSeekGPT
 from app.gpt.openai_gpt import OpenaiGPT
 from app.gpt.qwen_gpt import QwenGPT
+from app.gpt.openrouter_gpt import OpenRouterGPT # 添加 OpenRouterGPT 导入
 from app.models.gpt_model import GPTSource
 from app.models.notes_model import NoteResult
 from app.models.notes_model import AudioDownloadResult
@@ -63,6 +64,9 @@ class NoteGenerator:
         elif self.provider == 'qwen':
             logger.info("使用Qwen")
             return QwenGPT()
+        elif self.provider == 'openrouter': # 添加 OpenRouter 选项
+            logger.info("使用 OpenRouter")
+            return OpenRouterGPT()
         else:
             self.provider = 'openai'
             logger.warning("不支持的AI提供商，使用 OpenAI 做完GPT")
