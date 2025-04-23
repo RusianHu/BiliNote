@@ -3,8 +3,10 @@
     <p align="center">
   <img src="./doc/icon.svg" alt="BiliNote Banner" width="50" height="50"  />
 </p>
-<h1 align="center" > BiliNote v1.0.1</h1>
+<h1 align="center" > BiliNote v1.0.1.1</h1>
 </div>
+
+> 本项目是基于 [JefferyHcool/BiliNote](https://github.com/JefferyHcool/BiliNote) 的分支，感谢原作者的开源贡献。
 
 <p align="center"><i>AI 视频笔记生成工具 让 AI 为你的视频做笔记</i></p>
 
@@ -25,7 +27,7 @@
 BiliNote 是一个开源的 AI 视频笔记助手，支持通过哔哩哔哩、YouTube 等视频链接，自动提取内容并生成结构清晰、重点明确的 Markdown 格式笔记。支持插入截图、原片跳转等功能。
 
 ## 🚀 体验地址
-[https://www.bilinote.app](https://www.bilinote.app) 
+[https://www.bilinote.app](https://www.bilinote.app)
 注意：由于 项目部署在 Cloudflare Pages，访问速度可能存在一些问题，请耐心等待。
 
 ## 📦 Windows 打包版
@@ -57,7 +59,20 @@ cd BiliNote
 mv .env.example .env
 ```
 
-### 2. 启动后端（FastAPI）
+### 2. 使用一键启动脚本（Windows）
+
+```bash
+# 双击运行 start_dev.bat 或在命令行执行：
+start_dev.bat
+```
+
+这将自动启动后端和前端服务，并在两个独立的终端窗口中显示运行状态。
+
+> 注意：一键启动脚本默认使用 Python 3.8 运行后端服务。如果您的系统中没有 Python 3.8，请修改 `start_dev.bat` 文件中的 `py -3.8` 为您系统中可用的 Python 版本。
+
+### 3. 手动启动（所有平台）
+
+#### 启动后端（FastAPI）
 
 ```bash
 cd backend
@@ -65,7 +80,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-### 3. 启动前端（Vite + React）
+#### 启动前端（Vite + React）
 
 ```bash
 cd BiliNote_frontend
@@ -144,12 +159,20 @@ QWEN_API_KEY=xxx
 ### Contact and Join-联系和加入社区
 - BiliNote 交流QQ群：785367111
 - BiliNote 交流微信群:
-  
+
   <img src="./doc/wechat.png" alt="wechat" style="zoom:33%;" />
 
 ## 📜 License
 
 MIT License
+
+## 👥 关于本 Fork
+
+本项目是基于 [JefferyHcool/BiliNote](https://github.com/JefferyHcool/BiliNote) 的分支，对原项目进行了以下改进：
+
+- 添加了一键启动脚本 `start_dev.bat`，方便 Windows 用户快速启动项目
+- 完善了文档和使用说明
+- 优化了部分代码结构
 
 ---
 
