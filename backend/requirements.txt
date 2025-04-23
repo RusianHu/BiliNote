@@ -6,7 +6,7 @@ starlette>=0.31.0
 # 工具库
 python-dotenv>=1.0.0
 requests>=2.31.0
-httpx>=0.25.0
+httpx[socks]>=0.25.0  # 添加socks支持，用于SOCKS代理
 pydantic>=2.0.0
 blinker>=1.6.0
 tqdm>=4.66.0

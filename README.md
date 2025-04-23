@@ -14,7 +14,7 @@
   <img src="https://img.shields.io/badge/license-MIT-blue.svg" />
   <img src="https://img.shields.io/badge/frontend-react-blue" />
   <img src="https://img.shields.io/badge/backend-fastapi-green" />
-  <img src="https://img.shields.io/badge/GPT-openai%20%7C%20deepseek%20%7C%20qwen-ff69b4" />
+  <img src="https://img.shields.io/badge/GPT-openai%20%7C%20deepseek%20%7C%20qwen%20%7C%20openrouter-ff69b4" />
   <img src="https://img.shields.io/badge/docker-compose-blue" />
   <img src="https://img.shields.io/badge/status-active-success" />
   <img src="https://img.shields.io/github/stars/jefferyhcool/BiliNote?style=social" />
@@ -30,7 +30,7 @@ BiliNote 是一个开源的 AI 视频笔记助手，支持通过哔哩哔哩、Y
 
 - 支持多平台：Bilibili、YouTube（后续会加入更多平台）
 - 本地模型音频转写（支持 Fast-Whisper）
-- GPT 大模型总结视频内容（支持 OpenAI、DeepSeek、Qwen）
+- GPT 大模型总结视频内容（支持 OpenAI、DeepSeek、Qwen、OpenRouter）
 - 自动生成结构化 Markdown 笔记
 - 可选插入截图（自动截取）
 - 可选内容跳转链接（关联原视频）
@@ -127,16 +127,54 @@ docker compose up --build
 
 ## ⚙️ 环境变量配置
 
-后端 `.env` 示例：
+`.env` 文件配置示例：
 
 ```ini
-API_BASE_URL=http://localhost:8000
-OUT_DIR=note_results
+# 通用端口配置
+BACKEND_PORT=8000
+BACKEND_HOST=127.0.0.1
+
+# 前端访问后端用
+VITE_API_BASE_URL=http://127.0.0.1:8000
+VITE_SCREENSHOT_BASE_URL=http://127.0.0.1:8000/static/screenshots
+
+# 生产环境配置
+ENV=production
+STATIC=/static
+OUT_DIR=./static/screenshots
 IMAGE_BASE_URL=/static/screenshots
-MODEl_PROVIDER=openai
-OPENAI_API_KEY=sk-xxxxxx
-DEEP_SEEK_API_KEY=xxx
-QWEN_API_KEY=xxx
+DATA_DIR=data
+
+# AI 相关配置
+# --- 选择 AI 提供商 ---
+MODEL_PROVIDER=openai # 可选值: openai, deepseek, qwen, openrouter
+
+# --- OpenAI 设置 ---
+OPENAI_API_KEY=
+OPENAI_API_BASE_URL=
+OPENAI_MODEL=
+
+# --- DeepSeek 设置 ---
+DEEP_SEEK_API_KEY=
+DEEP_SEEK_API_BASE_URL=https://api.deepseek.com
+DEEP_SEEK_MODEL=deepseek-chat
+
+# --- Qwen 设置 ---
+QWEN_API_KEY=
+QWEN_API_BASE_URL=
+QWEN_MODEL=
+
+# --- OpenRouter 设置 ---
+OPENROUTER_API_KEY= # 替换为你的 OpenRouter API Key
+OPENROUTER_MODEL=google/gemini-2.5-flash-preview # 或者其他 OpenRouter 支持的模型 ID
+
+# --- 截图设置 ---
+OUT_DIR=./static/screenshots
+IMAGE_BASE_URL=/static/screenshots
+
+# FFMPEG 配置
+# 打包后的应用会自动查找bin目录下的ffmpeg
+FFMPEG_BIN_PATH=bin/ffmpeg.exe
 ```
 
 ## 🧠 TODO
@@ -145,14 +183,8 @@ QWEN_API_KEY=xxx
 - [ ] 支持前端设置切换 AI 模型切换、语音转文字模型
 - [ ] AI 摘要风格自定义（学术风、口语风、重点提取等）
 - [ ] 笔记导出为 PDF / Word / Notion
-- [ ] 加入更多模型支持
+- [x] 加入更多模型支持（已支持 OpenAI、DeepSeek、Qwen、OpenRouter）
 - [ ] 加入更多音频转文本模型支持
-
-### Contact and Join-联系和加入社区
-- BiliNote 交流QQ群：785367111
-- BiliNote 交流微信群:
-
-  <img src="./doc/wechat.png" alt="wechat" style="zoom:33%;" />
 
 ## 📜 License
 
@@ -165,7 +197,7 @@ MIT License
 - 添加了一键启动脚本 `start_dev.bat`，方便 Windows 用户快速启动项目
 - 完善了文档和使用说明
 - 优化了部分代码结构
-
+- 增加了 OpenRouter 支持（可使用 Claude、Gemini 等多种模型）
 ---
 
 💬 你的支持与反馈是我持续优化的动力！欢迎 PR、提 issue、Star ⭐️
