@@ -1,10 +1,10 @@
 @echo off
 chcp 65001 > nul
 echo Starting Backend Server...
-start "Backend Server" cmd /k "cd backend && echo Installing backend dependencies (using proxy)... && echo Starting backend server (main.py)... && python main.py"
+start "Backend Server" cmd /k "echo Installing backend dependencies (using proxy)... && echo Starting backend server (main.py)... && py -3.8 backend\main.py"
 
 echo Starting Frontend Server...
-start "Frontend Server" cmd /k "cd BillNote_frontend && echo Installing frontend dependencies... && pnpm install && echo Starting frontend dev server... && pnpm dev"
+start "Frontend Server" cmd /k "cd BiliNote_frontend && echo Installing frontend dependencies... && pnpm install && echo Starting frontend dev server... && pnpm dev"
 
 echo.
 echo Startup script initiated. Please check the two new terminal windows for server status.

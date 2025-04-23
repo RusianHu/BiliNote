@@ -23,7 +23,7 @@ services:
     container_name: bilinote-frontend
     build:
       context: .
-      dockerfile: BillNote_frontend/Dockerfile
+      dockerfile: BiliNote_frontend/Dockerfile
     env_file:
       - .env
     ports:
