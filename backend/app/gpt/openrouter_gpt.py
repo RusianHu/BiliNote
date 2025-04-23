@@ -1,7 +1,7 @@
 from typing import List
 from app.gpt.base import GPT
 from openai import OpenAI
-from app.gpt.prompt import BASE_PROMPT, AI_SUM, SCREENSHOT, LINK # 假设 OpenRouter 也支持这些提示
+from app.gpt.prompt import BASE_PROMPT, AI_SUM, SCREENSHOT, LINK
 from app.models.gpt_model import GPTSource
 from app.models.transcriber_model import TranscriptSegment
 from datetime import timedelta
