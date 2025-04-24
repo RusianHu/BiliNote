@@ -1,7 +1,7 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import ReactMarkdown from "react-markdown"
 import { Button } from "@/components/ui/button"
-import { Copy, Download, FileText,ArrowRight } from "lucide-react"
+import { Copy, Download, FileText, ArrowRight, Clock } from "lucide-react"
 import { toast } from "sonner" // 你可以换成自己的通知组件
 import { Prism as SyntaxHighlighter } from 'react-syntax-highlighter'
 import { solarizedlight as codeStyle } from 'react-syntax-highlighter/dist/cjs/styles/prism'
@@ -9,15 +9,45 @@ import 'github-markdown-css/github-markdown-light.css'
 import {FC} from 'react'
 import Loading from "@/components/Lottie/Loading.tsx";
 import Idle from "@/components/Lottie/Idle.tsx";
-import {useTaskStore} from "@/store/taskStore";
+import {useTaskStore, Timings} from "@/store/taskStore";
 interface MarkdownViewerProps {
     content: string
     status: 'idle' | 'loading' | 'success'
 }
 
+// 格式化时间为 mm:ss 格式
+const formatTime = (seconds: number): string => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+};
+
 const MarkdownViewer: FC<MarkdownViewerProps> = ({ content, status }) => {
     const [copied, setCopied] = useState(false)
-    const getCurrentTask =useTaskStore.getState().getCurrentTask
+    const [elapsedTime, setElapsedTime] = useState(0)
+    const getCurrentTask = useTaskStore.getState().getCurrentTask
+    const currentTask = getCurrentTask()
+
+    // 计时器逻辑 - 仅在加载状态下运行
+    useEffect(() => {
+        let timer: number | null = null;
+
+        if (status === 'loading') {
+            // 启动计时器
+            timer = window.setInterval(() => {
+                setElapsedTime(prev => prev + 1);
+            }, 1000);
+        } else {
+            // 重置计时器
+            setElapsedTime(0);
+        }
+
+        return () => {
+            if (timer) {
+                clearInterval(timer);
+            }
+        };
+    }, [status]);
     const handleCopy = async () => {
         try {
             await navigator.clipboard.writeText(content)
@@ -47,10 +77,13 @@ const MarkdownViewer: FC<MarkdownViewerProps> = ({ content, status }) => {
                 <Loading className='h-5 w-5' />
                 <div className="text-center text-sm">
                     <p className="text-lg font-bold">正在生成笔记，请稍候…</p>
-                    <p className="mt-2 text-xs text-neutral-500">这可能需要几秒钟时间，取决于视频长度</p>
+                    <div className="mt-2 flex items-center justify-center gap-1 text-primary">
+                        <Clock className="h-4 w-4" />
+                        <span className="font-mono">{formatTime(elapsedTime)}</span>
+                    </div>
+                    <p className="mt-2 text-xs text-neutral-500">这可能需要几分钟时间，取决于视频长度</p>
                 </div>
             </div>
-
         )
     }
     else if (status === 'idle'){
@@ -87,6 +120,52 @@ const MarkdownViewer: FC<MarkdownViewerProps> = ({ content, status }) => {
                     </Button>
                 </div>
             </div>
+
+            {/* 计时信息显示 */}
+            {currentTask?.timings && currentTask.timings.total > 0 && (
+                <div className="bg-gray-50 p-3 rounded-md mb-4 text-sm border border-gray-200">
+                    <div className="flex items-center gap-1 text-gray-700 mb-2">
+                        <Clock className="h-4 w-4 text-primary" />
+                        <span className="font-medium">笔记生成耗时</span>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <div className="flex flex-col">
+                            <span className="text-xs text-gray-500">总耗时</span>
+                            <span className="font-mono font-medium">{currentTask.timings.total}秒</span>
+                        </div>
+                        {currentTask.timings.audio_download > 0 && (
+                            <div className="flex flex-col">
+                                <span className="text-xs text-gray-500">音频下载</span>
+                                <span className="font-mono">{currentTask.timings.audio_download}秒</span>
+                            </div>
+                        )}
+                        {currentTask.timings.video_download > 0 && (
+                            <div className="flex flex-col">
+                                <span className="text-xs text-gray-500">视频下载</span>
+                                <span className="font-mono">{currentTask.timings.video_download}秒</span>
+                            </div>
+                        )}
+                        {currentTask.timings.transcription > 0 && (
+                            <div className="flex flex-col">
+                                <span className="text-xs text-gray-500">音频转写</span>
+                                <span className="font-mono">{currentTask.timings.transcription}秒</span>
+                            </div>
+                        )}
+                        {currentTask.timings.gpt_summary > 0 && (
+                            <div className="flex flex-col">
+                                <span className="text-xs text-gray-500">AI 总结</span>
+                                <span className="font-mono">{currentTask.timings.gpt_summary}秒</span>
+                            </div>
+                        )}
+                        {currentTask.timings.post_processing > 0 && (
+                            <div className="flex flex-col">
+                                <span className="text-xs text-gray-500">后处理</span>
+                                <span className="font-mono">{currentTask.timings.post_processing}秒</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* 滚动容器 */}
 

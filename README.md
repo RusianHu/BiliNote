@@ -35,6 +35,7 @@ BiliNote 是一个开源的 AI 视频笔记助手，支持通过哔哩哔哩、Y
 - 可选插入截图（自动截取）
 - 可选内容跳转链接（关联原视频）
 - 任务记录与历史回看
+- 笔记生成过程实时计时器，显示各阶段耗时
 
 ## 📸 截图预览
 ![screenshot](./doc/image1.png)
@@ -185,6 +186,7 @@ FFMPEG_BIN_PATH=bin/ffmpeg.exe
 - [ ] 笔记导出为 PDF / Word / Notion
 - [x] 加入更多模型支持（已支持 OpenAI、DeepSeek、Qwen、OpenRouter）
 - [ ] 加入更多音频转文本模型支持
+- [x] 笔记生成过程实时计时器，显示各阶段耗时
 
 ## 📜 License
 
@@ -198,6 +200,7 @@ MIT License
 - 完善了文档和使用说明
 - 优化了部分代码结构
 - 增加了 OpenRouter 支持（可使用 Claude、Gemini 等多种模型）
+- 添加了笔记生成过程实时计时器，显示各阶段耗时（下载、转写、AI总结等）
 ---
 
 💬 你的支持与反馈是我持续优化的动力！欢迎 PR、提 issue、Star ⭐️

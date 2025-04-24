@@ -21,13 +21,14 @@ export const useTaskPolling = (interval = 3000) => {
 
                     if (status && status !== task.status) {
                         if (status === "SUCCESS") {
-                            const {  markdown, transcript, audio_meta } = res.data.result
+                            const { markdown, transcript, audio_meta, timings } = res.data.result
 
                             updateTaskContent(task.id, {
                                 status,
                                 markdown,
                                 transcript,
                                 audioMeta: audio_meta,
+                                timings,
                             })
                         } else {
                             updateTaskContent(task.id, { status })

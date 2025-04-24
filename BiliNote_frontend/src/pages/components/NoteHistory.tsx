@@ -48,22 +48,32 @@ const NoteHistory: FC<NoteHistoryProps> = ({ onSelect, selectedId }) => {
 
                         {/* 标题 + 状态 */}
 
-                        <div className="flex items-center justify-between gap-2 min-w-0 w-full">
-                            <TooltipProvider>
-                                <Tooltip>
-                                    <TooltipTrigger asChild>
-                                        <div className="font-medium max-w-[120px] truncate flex-1">{task.audioMeta.title || "未命名笔记"}</div>
-                                    </TooltipTrigger>
-                                    <TooltipContent>
-                                        <p>{task.audioMeta.title || "未命名笔记"}</p>
-                                    </TooltipContent>
-                                </Tooltip>
-                            </TooltipProvider>
-                            <div className="shrink-0">
-                                {task.status === "SUCCESS" && <Badge variant="default">已完成</Badge>}
-                                {task.status === "PENDING" && <Badge variant="outline">等待中</Badge>}
-                                {task.status === "FAILED" && <Badge variant="destructive">失败</Badge>}
+                        <div className="flex flex-col min-w-0 w-full">
+                            <div className="flex items-center justify-between gap-2">
+                                <TooltipProvider>
+                                    <Tooltip>
+                                        <TooltipTrigger asChild>
+                                            <div className="font-medium max-w-[120px] truncate flex-1">{task.audioMeta.title || "未命名笔记"}</div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                            <p>{task.audioMeta.title || "未命名笔记"}</p>
+                                        </TooltipContent>
+                                    </Tooltip>
+                                </TooltipProvider>
+                                <div className="shrink-0">
+                                    {task.status === "SUCCESS" && <Badge variant="default">已完成</Badge>}
+                                    {task.status === "PENDING" && <Badge variant="outline">等待中</Badge>}
+                                    {task.status === "FAILED" && <Badge variant="destructive">失败</Badge>}
+                                </div>
                             </div>
+
+                            {/* 计时信息 */}
+                            {task.status === "SUCCESS" && task.timings && task.timings.total > 0 && (
+                                <div className="flex items-center gap-1 text-xs text-gray-500 mt-1">
+                                    <Clock className="w-3 h-3" />
+                                    <span>{task.timings.total}秒</span>
+                                </div>
+                            )}
                         </div>
 
 

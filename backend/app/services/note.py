@@ -1,5 +1,6 @@
 import os
-from typing import Union, List, Tuple
+import time
+from typing import Union, List, Tuple, Dict
 
 from pydantic import HttpUrl
 
@@ -173,31 +174,46 @@ class NoteGenerator:
 
     ) -> NoteResult:
         logger.info(f"开始解析并生成笔记")
+        # 记录各阶段耗时
+        timings: Dict[str, float] = {}
+        start_total = time.time()
+
         # 1. 选择下载器
         downloader = self.get_downloader(platform)
         gpt = self.get_gpt()
         logger.info(f'使用{downloader.__class__.__name__}下载器')
         logger.info(f'使用{gpt.__class__.__name__}GPT')
         logger.info(f'视频地址：{video_url}')
-        if screenshot:
 
+        # 下载视频（如果需要截图）
+        if screenshot:
+            start_video = time.time()
             video_path = downloader.download_video(video_url)
             self.video_path = video_path
-            print(video_path)
+            timings['video_download'] = round(time.time() - start_video, 2)
+            logger.info(f"视频下载耗时: {timings['video_download']}秒")
 
         # 2. 下载音频
+        start_audio = time.time()
         audio: AudioDownloadResult = downloader.download(
             video_url=video_url,
             quality=quality,
             output_dir=path,
             need_video=screenshot
-
         )
+        timings['audio_download'] = round(time.time() - start_audio, 2)
+        logger.info(f"音频下载耗时: {timings['audio_download']}秒")
         logger.info(f"下载音频成功，文件路径：{audio.file_path}")
+
         # 3. Whisper 转写
+        start_transcript = time.time()
         transcript: TranscriptResult = self.transcriber.transcript(file_path=audio.file_path)
+        timings['transcription'] = round(time.time() - start_transcript, 2)
+        logger.info(f"转写耗时: {timings['transcription']}秒")
         logger.info(f"Whisper 转写成功，转写结果：{transcript.full_text}")
+
         # 4. GPT 总结
+        start_gpt = time.time()
         source = GPTSource(
             title=audio.title,
             segment=transcript.segments,
@@ -205,23 +221,38 @@ class NoteGenerator:
             screenshot=screenshot,
             link=link
         )
-        logger.info(f"GPT 总结完成，总结结果：{source}")
         markdown: str = gpt.summarize(source)
-        print("markdown结果", markdown)
+        timings['gpt_summary'] = round(time.time() - start_gpt, 2)
+        logger.info(f"GPT 总结耗时: {timings['gpt_summary']}秒")
+        logger.info(f"GPT 总结完成")
 
+        # 处理内容标记和截图
+        start_post = time.time()
         markdown = replace_content_markers(markdown=markdown, video_id=audio.video_id, platform=platform)
+
+        # 处理截图（如果启用）
         if self.video_path:
             markdown = self.insert_screenshots_into_markdown(markdown, self.video_path, image_base_url, output_dir)
+
+        timings['post_processing'] = round(time.time() - start_post, 2)
+        logger.info(f"后处理耗时: {timings['post_processing']}秒")
+
+        # 保存元数据
         self.save_meta(video_id=audio.video_id, platform=platform, task_id=task_id)
-        
+
+        # 计算总耗时
+        timings['total'] = round(time.time() - start_total, 2)
+        logger.info(f"笔记生成总耗时: {timings['total']}秒")
+
         # 在返回结果之前触发笔记生成完成信号
         note_generation_finished.send({
             "file_path": audio.file_path,
         })
-        
+
         # 5. 返回结构体
         return NoteResult(
             markdown=markdown,
             transcript=transcript,
-            audio_meta=audio
+            audio_meta=audio,
+            timings=timings
         )

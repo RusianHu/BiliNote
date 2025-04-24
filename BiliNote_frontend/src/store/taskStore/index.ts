@@ -27,6 +27,15 @@ export interface Transcript {
     segments: Segment[]
 }
 
+export interface Timings {
+    audio_download?: number
+    video_download?: number
+    transcription?: number
+    gpt_summary?: number
+    post_processing?: number
+    total?: number
+}
+
 export interface Task {
     id: string
     markdown: string
@@ -34,6 +43,7 @@ export interface Task {
     status: TaskStatus
     audioMeta: AudioMeta
     createdAt: string
+    timings?: Timings
 }
 
 interface TaskStore {
@@ -77,6 +87,13 @@ export const useTaskStore = create<TaskStore>()(
                                 raw_info: null,
                                 title: "",
                                 video_id: "",
+                            },
+                            timings: {
+                                total: 0,
+                                audio_download: 0,
+                                transcription: 0,
+                                gpt_summary: 0,
+                                post_processing: 0
                             },
                         },
                         ...state.tasks,
