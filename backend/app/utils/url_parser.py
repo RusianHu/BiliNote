@@ -1,4 +1,5 @@
 import re
+import httpx
 from typing import Optional
 
 
@@ -23,6 +24,20 @@ def extract_video_id(url: str, platform: str) -> Optional[str]:
     elif platform == "douyin":
         # 匹配 douyin.com/video/1234567890123456789
         match = re.search(r"/video/(\d+)", url)
-        return match.group(1) if match else None
+        if match:
+            return match.group(1)
+
+        # 处理抖音短链接 (如 v.douyin.com/xxx/)
+        if "v.douyin.com" in url:
+            try:
+                # 发送请求并跟随重定向
+                response = httpx.get(url, follow_redirects=True)
+                # 从最终URL中提取视频ID
+                final_url = str(response.url)
+                match = re.search(r"/video/(\d+)", final_url)
+                return match.group(1) if match else None
+            except Exception as e:
+                print(f"解析抖音短链接出错: {e}")
+                return None
 
     return None

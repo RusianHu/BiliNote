@@ -25,8 +25,9 @@ import { Info,Clock } from "lucide-react"
 import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger} from "@/components/ui/tooltip.tsx";
 import {generateNote} from "@/services/note.ts";
 import {useTaskStore} from "@/store/taskStore";
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import NoteHistory from "@/pages/components/NoteHistory.tsx";
+import { extractVideoLink, detectPlatform } from "@/utils/linkExtractor";
 
 // ✅ 定义表单 schema
 const formSchema = z.object({
@@ -86,7 +87,7 @@ const NoteForm = () => {
                                         <Info className="h-4 w-4 text-neutral-400 hover:text-primary cursor-pointer" />
                                     </TooltipTrigger>
                                     <TooltipContent>
-                                        <p className="text-xs ">输入视频链接，支持哔哩哔哩、YouTube等平台</p>
+                                        <p className="text-xs max-w-[250px]">输入视频链接或直接粘贴分享文本，支持哔哩哔哩、YouTube、抖音等平台</p>
                                     </TooltipContent>
                                 </Tooltip>
                             </TooltipProvider>
@@ -111,6 +112,7 @@ const NoteForm = () => {
                                             <SelectContent>
                                                 <SelectItem value="bilibili">哔哩哔哩</SelectItem>
                                                 <SelectItem value="youtube">Youtube</SelectItem>
+                                                <SelectItem value="douyin">抖音</SelectItem>
                                                 {/*<SelectItem value="local">本地视频</SelectItem>*/}
                                             </SelectContent>
                                         </Select>
@@ -127,8 +129,26 @@ const NoteForm = () => {
                                     <FormItem className="flex-1">
                                         <FormControl>
                                             <Input
-                                                placeholder="视频链接"
+                                                placeholder="视频链接或粘贴分享文本"
                                                 {...field}
+                                                onChange={(e) => {
+                                                    // 提取视频链接
+                                                    const inputText = e.target.value;
+                                                    const extractedLink = extractVideoLink(inputText);
+
+                                                    // 如果提取出链接与输入不同，则使用提取的链接
+                                                    if (extractedLink !== inputText) {
+                                                        field.onChange(extractedLink);
+
+                                                        // 自动检测并设置平台
+                                                        const platform = detectPlatform(extractedLink);
+                                                        if (platform) {
+                                                            form.setValue('platform', platform);
+                                                        }
+                                                    } else {
+                                                        field.onChange(inputText);
+                                                    }
+                                                }}
                                             />
                                         </FormControl>
                                         <FormMessage />
@@ -268,7 +288,11 @@ const NoteForm = () => {
                     </li>
                     <li className="flex items-start gap-2">
                         <span className="text-primary font-bold">•</span>
-                        <span>支持多个视频平台，包括哔哩哔哩、YouTube等</span>
+                        <span>支持多个视频平台，包括哔哩哔哩、YouTube、抖音等</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                        <span className="text-primary font-bold">•</span>
+                        <span>智能提取分享文本中的视频链接</span>
                     </li>
                     <li className="flex items-start gap-2">
                         <span className="text-primary font-bold">•</span>
