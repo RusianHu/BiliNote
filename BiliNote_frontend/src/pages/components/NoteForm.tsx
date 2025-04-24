@@ -112,7 +112,7 @@ const NoteForm = () => {
                                             <SelectContent>
                                                 <SelectItem value="bilibili">哔哩哔哩</SelectItem>
                                                 <SelectItem value="youtube">Youtube</SelectItem>
-                                                <SelectItem value="douyin">抖音</SelectItem>
+                                                <SelectItem value="douyin">抖音（暂不支持）</SelectItem>
                                                 {/*<SelectItem value="local">本地视频</SelectItem>*/}
                                             </SelectContent>
                                         </Select>
