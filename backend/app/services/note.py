@@ -100,7 +100,7 @@ class NoteGenerator:
             return get_transcriber(transcriber_type=self.transcriber_type)
         else:
             logger.warning("不支持的转义器")
-            raise ValueError(f"不支持的转义器：{self.transcriber}")
+            raise ValueError(f"不支持的转义器：{self.transcriber_type}")
 
     def save_meta(self, video_id, platform, task_id):
         logger.info(f"记录已经生成的数据信息")
