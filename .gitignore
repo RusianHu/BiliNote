@@ -319,4 +319,5 @@ cython_debug/
 /bin
 OpenRouter 快速入门.md
 /note_results
-AI 提示词
+AIprompt
+note_tasks.db
