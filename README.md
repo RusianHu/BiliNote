@@ -17,7 +17,7 @@
   <img src="https://img.shields.io/badge/GPT-openai%20%7C%20deepseek%20%7C%20qwen%20%7C%20openrouter-ff69b4" />
   <img src="https://img.shields.io/badge/docker-compose-blue" />
   <img src="https://img.shields.io/badge/status-active-success" />
-  <img src="https://img.shields.io/github/stars/jefferyhcool/BiliNote?style=social" />
+  <img src="https://img.shields.io/github/stars/RusianHu/BiliNote?style=social" />
 </p>
 
 
@@ -48,7 +48,7 @@ BiliNote 是一个开源的 AI 视频笔记助手，支持通过哔哩哔哩、Y
 ### 1. 克隆仓库
 
 ```bash
-git clone https://github.com/JefferyHcool/BiliNote.git
+git clone https://github.com/RusianHu/BiliNote.git
 cd BiliNote
 mv .env.example .env
 ```
@@ -110,7 +110,7 @@ sudo apt install ffmpeg
 
 #### 1. 克隆本项目
 ```bash
-git clone https://github.com/JefferyHcool/BiliNote.git
+git clone https://github.com/RusianHu/BiliNote.git
 cd BiliNote
 mv .env.example .env
 ```
@@ -170,6 +170,11 @@ QWEN_MODEL=
 OPENROUTER_API_KEY= # 替换为你的 OpenRouter API Key
 OPENROUTER_MODEL=google/gemini-2.5-flash-preview # 或者其他 OpenRouter 支持的模型 ID
 
+# --- 代理设置 (可选) ---
+# 如果你在国内环境且需要访问国外服务，请配置以下代理
+#HTTP_PROXY=http://127.0.0.1:10808
+#HTTPS_PROXY=http://127.0.0.1:10808
+
 # --- 截图设置 ---
 OUT_DIR=./static/screenshots
 IMAGE_BASE_URL=/static/screenshots
@@ -205,7 +210,7 @@ DOUYIN_COOKIES=
 
 ## 📜 License
 
-MIT License
+[MIT License](./LICENSE)
 
 ## 👥 关于本 Fork
 
