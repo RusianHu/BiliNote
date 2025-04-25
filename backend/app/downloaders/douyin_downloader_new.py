@@ -21,7 +21,7 @@ logger = get_logger(__name__)
 class DouyinConfig:
     """抖音API配置类"""
     HOST = 'https://www.douyin.com'
-
+    
     # 通用请求参数
     COMMON_PARAMS = {
         'device_platform': 'webapp',
@@ -50,7 +50,7 @@ class DouyinConfig:
         'effective_type': '4g',
         'round_trip_time': '50',
     }
-
+    
     # 通用请求头
     COMMON_HEADERS = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.0.0 Safari/537.36",
@@ -83,34 +83,31 @@ class DouyinAPI:
         except Exception as e:
             logger.error(f"加载抖音签名JS文件失败: {str(e)}")
             self.douyin_sign = None
-
-    def common_request(self, uri: str, params: dict) -> Tuple[dict, bool]:
+    
+    async def common_request(self, uri: str, params: dict) -> Tuple[dict, bool]:
         """通用请求方法"""
         url = f'{DouyinConfig.HOST}{uri}'
-
+        
         # 合并通用参数
         params.update(DouyinConfig.COMMON_PARAMS)
-
+        
         # 准备请求头
         headers = DouyinConfig.COMMON_HEADERS.copy()
         headers['Cookie'] = self.cookie
-
+        
         # 处理参数
-        params = self._deal_params(params, headers)
-
+        params = await self._deal_params(params, headers)
+        
         # 构建查询字符串
         query = '&'.join([f'{k}={urllib.parse.quote(str(v))}' for k, v in params.items()])
-
+        
         # 根据URI选择签名方法
         call_name = 'sign_reply' if 'reply' in uri else 'sign_datail'
-
+        
         # 生成签名
         if self.douyin_sign:
-            try:
-                params["a_bogus"] = self.douyin_sign.call(call_name, query, headers["User-Agent"])
-            except Exception as e:
-                logger.error(f"生成签名失败: {str(e)}")
-
+            params["a_bogus"] = self.douyin_sign.call(call_name, query, headers["User-Agent"])
+        
         try:
             response = requests.get(url, params=params, headers=headers)
             response.raise_for_status()
@@ -119,11 +116,11 @@ class DouyinAPI:
         except Exception as e:
             logger.error(f"请求失败: {str(e)}")
             return {}, False
-
-    def _deal_params(self, params: dict, headers: dict) -> dict:
+    
+    async def _deal_params(self, params: dict, headers: dict) -> dict:
         """处理请求参数"""
         cookie_dict = self._cookies_to_dict(headers.get('Cookie', ''))
-
+        
         # 更新参数
         params.update({
             'msToken': self._get_ms_token(),
@@ -135,45 +132,41 @@ class DouyinAPI:
             'fp': cookie_dict.get('s_v_web_id'),
             'webid': cookie_dict.get('ttwid', "7393173430232106534")
         })
-
+        
         return params
-
+    
     @staticmethod
     def _cookies_to_dict(cookie_string: str) -> dict:
         """将cookie字符串转换为字典"""
-        result = {}
-        for cookie in cookie_string.split('; '):
-            if cookie and cookie != 'douyin.com' and '=' in cookie:
-                try:
-                    key, value = cookie.split('=', 1)
-                    result[key] = value
-                except Exception:
-                    pass
-        return result
-
+        return {
+            cookie.split('=', 1)[0]: cookie.split('=', 1)[1]
+            for cookie in cookie_string.split('; ')
+            if cookie and cookie != 'douyin.com' and '=' in cookie
+        }
+    
     @staticmethod
     def _get_ms_token(length: int = 120) -> str:
         """生成随机msToken"""
         base_str = 'ABCDEFGHIGKLMNOPQRSTUVWXYZabcdefghigklmnopqrstuvwxyz0123456789='
         return ''.join(random.choice(base_str) for _ in range(length))
-
-    def get_video_info(self, video_url: str) -> Tuple[dict, bool]:
+    
+    async def get_video_info(self, video_url: str) -> Tuple[dict, bool]:
         """获取视频信息"""
         # 从URL中提取视频ID
         video_id = self._extract_video_id(video_url)
         if not video_id:
             logger.error(f"无法从URL中提取视频ID: {video_url}")
             return {}, False
-
+        
         # 构建请求参数
         params = {
             "previous_page": "web_code_link",
             "aweme_id": video_id
         }
-
+        
         # 发送请求
-        return self.common_request('/aweme/v1/web/aweme/detail/', params)
-
+        return await self.common_request('/aweme/v1/web/aweme/detail/', params)
+    
     def _extract_video_id(self, url: str) -> str:
         """从URL中提取视频ID"""
         # 处理短链接
@@ -184,21 +177,21 @@ class DouyinAPI:
             except Exception as e:
                 logger.error(f"解析短链接失败: {str(e)}")
                 return ""
-
+        
         # 从URL中提取视频ID
         patterns = [
             r'video/(\d+)',  # 标准URL格式
             r'aweme_id=(\d+)',  # 查询参数格式
         ]
-
+        
         for pattern in patterns:
             match = re.search(pattern, url)
             if match:
                 return match.group(1)
-
+        
         return ""
 
-class DouyinDownloader(Downloader, ABC):
+class DouyinDownloaderNew(Downloader, ABC):
     """抖音下载器类"""
     def __init__(self):
         super().__init__()
@@ -207,7 +200,7 @@ class DouyinDownloader(Downloader, ABC):
             logger.warning("未配置抖音cookies，可能导致下载失败。请在.env文件中设置DOUYIN_COOKIES")
         self.api = DouyinAPI(self.cookies)
         self.download_record = set()  # 记录已下载的视频ID
-
+    
     def _sanitize_filename(self, name: str, max_length: int = 50) -> str:
         """清理文件名"""
         # 移除非法字符
@@ -215,7 +208,7 @@ class DouyinDownloader(Downloader, ABC):
         # 移除多余空格
         name = ' '.join(name.split())
         return name[:max_length]
-
+    
     def _get_download_headers(self) -> dict:
         """获取下载用的请求头"""
         headers = DouyinConfig.COMMON_HEADERS.copy()
@@ -227,41 +220,41 @@ class DouyinDownloader(Downloader, ABC):
             'Cookie': self.cookies
         })
         return headers
-
-    def download_media(self, url: str, output_path: str) -> bool:
+    
+    async def download_media(self, url: str, output_path: str) -> bool:
         """下载媒体文件"""
         try:
             headers = self._get_download_headers()
             response = requests.get(url, headers=headers, stream=True)
             response.raise_for_status()
-
+            
             # 确保目录存在
             os.makedirs(os.path.dirname(output_path), exist_ok=True)
-
+            
             with open(output_path, "wb") as f:
                 for chunk in response.iter_content(chunk_size=8192):
                     if chunk:
                         f.write(chunk)
-
+            
             logger.info(f"下载成功: {output_path}")
             return True
         except Exception as e:
             logger.error(f"下载失败: {str(e)}")
             return False
-
-    def download_internal(self, video_url: str, output_dir: str, is_audio: bool = True) -> Tuple[str, dict]:
+    
+    async def download_internal(self, video_url: str, output_dir: str, is_audio: bool = True) -> Tuple[str, dict]:
         """内部下载方法"""
         # 获取视频信息
-        data, success = self.api.get_video_info(video_url)
+        data, success = await self.api.get_video_info(video_url)
         if not success:
             raise Exception(f"获取视频信息失败: {data}")
-
+        
         # 提取视频信息
         aweme_detail = data.get('aweme_detail', {})
         video_id = aweme_detail.get('aweme_id', '')
         title = aweme_detail.get('desc', f'douyin_{video_id}')
         title = self._sanitize_filename(title)
-
+        
         # 提取媒体URL
         if is_audio:
             # 获取音频URL
@@ -271,14 +264,14 @@ class DouyinDownloader(Downloader, ABC):
             if not media_url:
                 media_urls = play_url.get('url_list', [])
                 media_url = media_urls[0] if media_urls else ''
-
+            
             # 如果没有音频URL，尝试从视频中提取
             if not media_url:
                 video_info = aweme_detail.get('video', {})
                 play_addr = video_info.get('play_addr', {})
                 media_urls = play_addr.get('url_list', [])
                 media_url = media_urls[0] if media_urls else ''
-
+            
             # 设置输出文件路径
             file_ext = 'm4a'
             output_path = os.path.join(output_dir, f"{video_id}.{file_ext}")
@@ -288,26 +281,26 @@ class DouyinDownloader(Downloader, ABC):
             play_addr = video_info.get('play_addr', {})
             media_urls = play_addr.get('url_list', [])
             media_url = media_urls[0] if media_urls else ''
-
+            
             # 设置输出文件路径
             file_ext = 'mp4'
             output_path = os.path.join(output_dir, f"{video_id}.{file_ext}")
-
+        
         if not media_url:
             raise Exception(f"无法获取{'音频' if is_audio else '视频'}URL")
-
+        
         # 下载媒体
-        success = self.download_media(media_url, output_path)
+        success = await self.download_media(media_url, output_path)
         if not success:
             raise Exception(f"下载{'音频' if is_audio else '视频'}失败")
-
+        
         # 提取其他信息
         duration = aweme_detail.get('duration', 0) // 1000  # 毫秒转秒
         cover_url = ''
         if 'cover' in aweme_detail:
             cover_urls = aweme_detail['cover'].get('url_list', [])
             cover_url = cover_urls[0] if cover_urls else ''
-
+        
         # 返回结果
         info = {
             'title': title,
@@ -316,10 +309,10 @@ class DouyinDownloader(Downloader, ABC):
             'video_id': video_id,
             'tags': aweme_detail.get('text_extra', [])
         }
-
+        
         return output_path, info
-
-    def download(
+    
+    async def download(
         self,
         video_url: str,
         output_dir: Union[str, None] = None,
@@ -329,18 +322,18 @@ class DouyinDownloader(Downloader, ABC):
         """下载音频"""
         if output_dir is None:
             output_dir = get_data_dir()
-
+        
         os.makedirs(output_dir, exist_ok=True)
-
+        
         try:
             # 下载音频
-            audio_path, info = self.download_internal(video_url, output_dir, is_audio=True)
-
+            audio_path, info = await self.download_internal(video_url, output_dir, is_audio=True)
+            
             # 如果需要视频，也下载视频
             video_path = None
             if need_video:
-                video_path, _ = self.download_internal(video_url, output_dir, is_audio=False)
-
+                video_path, _ = await self.download_internal(video_url, output_dir, is_audio=False)
+            
             return AudioDownloadResult(
                 file_path=audio_path,
                 title=info['title'],
@@ -354,8 +347,8 @@ class DouyinDownloader(Downloader, ABC):
         except Exception as e:
             logger.error(f"下载抖音音频失败: {str(e)}")
             raise
-
-    def download_video(
+    
+    async def download_video(
         self,
         video_url: str,
         output_dir: Union[str, None] = None,
@@ -363,16 +356,16 @@ class DouyinDownloader(Downloader, ABC):
         """下载视频，返回视频文件路径"""
         if output_dir is None:
             output_dir = get_data_dir()
-
+        
         os.makedirs(output_dir, exist_ok=True)
-
+        
         try:
             # 下载视频
-            video_path, _ = self.download_internal(video_url, output_dir, is_audio=False)
-
+            video_path, _ = await self.download_internal(video_url, output_dir, is_audio=False)
+            
             if not os.path.exists(video_path):
                 raise FileNotFoundError(f"视频文件未找到: {video_path}")
-
+            
             return video_path
         except Exception as e:
             logger.error(f"下载抖音视频失败: {str(e)}")

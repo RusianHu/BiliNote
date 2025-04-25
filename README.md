@@ -6,7 +6,7 @@
 <h1 align="center" > BiliNote v1.0.1.1</h1>
 </div>
 
-> 本项目是基于 [JefferyHcool/BiliNote](https://github.com/JefferyHcool/BiliNote) 的分支，感谢原作者的开源贡献。
+> 本项目是基于 [JefferyHcool/BiliNote](https://github.com/JefferyHcool/BiliNote) 的分支，感谢原作者大佬的开源贡献。
 
 <p align="center"><i>AI 视频笔记生成工具 让 AI 为你的视频做笔记</i></p>
 
@@ -28,7 +28,8 @@ BiliNote 是一个开源的 AI 视频笔记助手，支持通过哔哩哔哩、Y
 
 ## 🔧 功能特性
 
-- 支持多平台：Bilibili、YouTube（后续会加入更多平台）
+- 支持多平台：Bilibili、YouTube、抖音（后续会加入更多平台）
+  - 抖音视频下载需要配置cookies（在.env文件中设置DOUYIN_COOKIES）
 - 本地模型音频转写（支持 Fast-Whisper）
 - GPT 大模型总结视频内容（支持 OpenAI、DeepSeek、Qwen、OpenRouter）
 - 自动生成结构化 Markdown 笔记
@@ -176,12 +177,26 @@ IMAGE_BASE_URL=/static/screenshots
 # FFMPEG 配置
 # 打包后的应用会自动查找bin目录下的ffmpeg
 FFMPEG_BIN_PATH=bin/ffmpeg.exe
+
+# transcriber 相关配置
+TRANSCRIBER_TYPE=fast-whisper # fast-whisper/bcut/kuaishou/mlx-whisper(仅Apple平台)
+WHISPER_MODEL_SIZE=base
+
+# 抖音视频下载配置
+# 从抖音网页版获取cookies，用于下载抖音视频
+# 获取方法：使用Chrome浏览器登录抖音网页版(www.douyin.com)，按F12打开开发者工具
+# 在Network标签页中随便点击一个请求，在Headers中找到Cookie字段，复制整个Cookie值
+DOUYIN_COOKIES=
 ```
 
 ## 🧠 TODO
 
-- [ ] 支持抖音及快手等视频平台
+- [x] 支持抖音视频平台
+  - [x] 完全重写抖音下载器，使用直接API调用替代yt-dlp
+  - [x] 支持抖音短链接和标准链接的自动识别和解析
+- [ ] 支持快手等更多视频平台
 - [ ] 支持前端设置切换 AI 模型切换、语音转文字模型
+- [ ] 前端界面添加抖音cookies配置提示
 - [ ] AI 摘要风格自定义（学术风、口语风、重点提取等）
 - [ ] 笔记导出为 PDF / Word / Notion
 - [x] 加入更多模型支持（已支持 OpenAI、DeepSeek、Qwen、OpenRouter）
@@ -201,6 +216,9 @@ MIT License
 - 优化了部分代码结构
 - 增加了 OpenRouter 支持（可使用 Claude、Gemini 等多种模型）
 - 添加了笔记生成过程实时计时器，显示各阶段耗时（下载、转写、AI总结等）
+- 添加了抖音视频下载支持（参考 [DY_video_downloader](https://github.com/anYuJia/DY_video_downloader) 实现，需配置cookies）
+  - 完全重写了抖音下载器，使用直接API调用替代yt-dlp，更加稳定可靠
+  - 支持抖音短链接和标准链接的自动识别和解析
 ---
 
 💬 你的支持与反馈是我持续优化的动力！欢迎 PR、提 issue、Star ⭐️

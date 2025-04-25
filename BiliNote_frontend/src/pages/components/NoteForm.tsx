@@ -112,7 +112,7 @@ const NoteForm = () => {
                                             <SelectContent>
                                                 <SelectItem value="bilibili">哔哩哔哩</SelectItem>
                                                 <SelectItem value="youtube">Youtube</SelectItem>
-                                                <SelectItem value="douyin">抖音（暂不支持）</SelectItem>
+                                                <SelectItem value="douyin">抖音</SelectItem>
                                                 {/*<SelectItem value="local">本地视频</SelectItem>*/}
                                             </SelectContent>
                                         </Select>
@@ -157,6 +157,14 @@ const NoteForm = () => {
                             />
 
                         </div>
+                        {form.watch('platform') === 'douyin' && (
+                            <div className="mt-2 p-2 bg-amber-50 border border-amber-200 rounded-md">
+                                <p className="text-xs text-amber-700 flex items-center">
+                                    <Info className="h-3 w-3 mr-1 inline" />
+                                    抖音视频下载需要配置cookies，请确保在.env文件中设置了DOUYIN_COOKIES
+                                </p>
+                            </div>
+                        )}
                         {/*<p className="text-xs text-neutral-500">*/}
                         {/*    支持哔哩哔哩视频链接，例如：*/}
                         {/*    https://www.bilibili.com/video/BV1vc25YQE9X/*/}
@@ -289,6 +297,10 @@ const NoteForm = () => {
                     <li className="flex items-start gap-2">
                         <span className="text-primary font-bold">•</span>
                         <span>支持多个视频平台，包括哔哩哔哩、YouTube、抖音等</span>
+                    </li>
+                    <li className="flex items-start gap-2">
+                        <span className="text-primary font-bold">•</span>
+                        <span>抖音视频下载需要在.env文件中配置cookies</span>
                     </li>
                     <li className="flex items-start gap-2">
                         <span className="text-primary font-bold">•</span>
