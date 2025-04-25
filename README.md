@@ -3,7 +3,7 @@
     <p align="center">
   <img src="./doc/icon.svg" alt="BiliNote Banner" width="50" height="50"  />
 </p>
-<h1 align="center" > BiliNote v1.0.1.1</h1>
+<h1 align="center" > BiliNote v1.0.1.2</h1>
 </div>
 
 > 本项目是基于 [JefferyHcool/BiliNote](https://github.com/JefferyHcool/BiliNote) 的分支，感谢原作者大佬的开源贡献。
